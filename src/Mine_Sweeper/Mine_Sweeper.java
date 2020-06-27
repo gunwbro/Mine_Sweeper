@@ -303,104 +303,104 @@ public class Mine_Sweeper extends JFrame implements Serializable {
                         }
                         // 클릭한 버튼이 꼭짓점일 때
                         if (num == 0) {
-                            if (j[num+1].getMine())
+                            if (j[num + 1].getMine())
                                 t++;
-                            if (j[num+rows_].getMine())
+                            if (j[num + cols_].getMine())
                                 t++;
-                            if (j[num+rows_+1].getMine())
-                                t++;
-                        }
-                        if (num == rows_-1) {
-                            if (j[num-1].getMine())
-                                t++;
-                            if (j[num+rows_-1].getMine())
-                                t++;
-                            if (j[num+rows_].getMine())
+                            if (j[num + cols_ + 1].getMine())
                                 t++;
                         }
-                        if (num == totalNum - rows_) {
-                            if (j[num-rows_].getMine())
+                        if (num == cols_ - 1) {
+                            if (j[num - 1].getMine())
                                 t++;
-                            if (j[num-rows_+1].getMine())
+                            if (j[num + cols_ - 1].getMine())
                                 t++;
-                            if (j[num+1].getMine())
+                            if (j[num + cols_].getMine())
+                                t++;
+                        }
+                        if (num == totalNum - cols_) {
+                            if (j[num - cols_].getMine())
+                                t++;
+                            if (j[num - cols_ + 1].getMine())
+                                t++;
+                            if (j[num + 1].getMine())
                                 t++;
                         }
                         if (num == totalNum - 1) {
-                            if (j[num-rows_-1].getMine())
+                            if (j[num - cols_ - 1].getMine())
                                 t++;
-                            if (j[num-rows_].getMine())
+                            if (j[num - cols_].getMine())
                                 t++;
-                            if (j[num-1].getMine())
-                                t++;
-                        }
-                        if (num > 0 && num < rows_ - 1) { // 클릭한 버튼이 위쪽 모서리 일 때
-                            if (j[num+1].getMine())
-                                t++;
-                            if (j[num+rows_].getMine())
-                                t++;
-                            if (j[num+rows_+1].getMine())
-                                t++;
-                            if (j[num-1].getMine())
-                                t++;
-                            if (j[num+rows_-1].getMine())
+                            if (j[num - 1].getMine())
                                 t++;
                         }
-                        if (num >= rows_ && num < totalNum - rows_) { // 클릭한 버튼이 양 쪽 모서리일 때
-                            if (num % rows_ == 0) {
-                                if (j[num-rows_].getMine())
+                        if (num > 0 && num < cols_ - 1) { // 클릭한 버튼이 위쪽 모서리 일 때
+                            if (j[num + 1].getMine())
+                                t++;
+                            if (j[num + cols_].getMine())
+                                t++;
+                            if (j[num + cols_ + 1].getMine())
+                                t++;
+                            if (j[num - 1].getMine())
+                                t++;
+                            if (j[num + cols_ - 1].getMine())
+                                t++;
+                        }
+                        if (num >= cols_ && num < totalNum - cols_) { // 클릭한 버튼이 양 쪽 모서리일 때
+                            if (num % cols_ == 0) {
+                                if (j[num - cols_].getMine())
                                     t++;
-                                if (j[num-rows_+1].getMine())
+                                if (j[num - cols_ + 1].getMine())
                                     t++;
-                                if (j[num+1].getMine())
+                                if (j[num + 1].getMine())
                                     t++;
-                                if (j[num+rows_].getMine())
+                                if (j[num + cols_].getMine())
                                     t++;
-                                if (j[num+rows_+1].getMine())
+                                if (j[num + cols_ + 1].getMine())
                                     t++;
                             }
-                            if (num % rows_ == rows_ - 1) {
-                                if (j[num-rows_-1].getMine())
+                            if (num % cols_ == cols_ - 1) {
+                                if (j[num - cols_ - 1].getMine())
                                     t++;
-                                if (j[num-rows_].getMine())
+                                if (j[num - cols_].getMine())
                                     t++;
-                                if (j[num-1].getMine())
+                                if (j[num - 1].getMine())
                                     t++;
-                                if (j[num+rows_-1].getMine())
+                                if (j[num + cols_ - 1].getMine())
                                     t++;
-                                if (j[num+rows_].getMine())
+                                if (j[num + cols_].getMine())
                                     t++;
                             }
                         }
-                        if (num > totalNum - rows_&& num < totalNum - 1) { // 아래쪽 모서리 일때
-                            if (j[num-rows_-1].getMine())
+                        if (num > totalNum - cols_ && num < totalNum - 1) { // 아래쪽 모서리 일때
+                            if (j[num - cols_ - 1].getMine())
                                 t++;
-                            if (j[num-rows_].getMine())
+                            if (j[num - cols_].getMine())
                                 t++;
-                            if (j[num-1].getMine())
+                            if (j[num - 1].getMine())
                                 t++;
-                            if (j[num-rows_+1].getMine())
+                            if (j[num - cols_ + 1].getMine())
                                 t++;
-                            if (j[num+1].getMine())
+                            if (j[num + 1].getMine())
                                 t++;
                         }
-                        if (num > rows_ && num < totalNum - rows_ - 1 &&
-                                !(num % rows_ == 0 || num % rows_ == rows_ - 1)) {
-                            if (j[num-rows_-1].getMine())
+                        if (num > cols_ && num < totalNum - cols_ - 1 &&
+                                !(num % cols_ == 0 || num % cols_ == cols_ - 1)) {
+                            if (j[num - cols_ - 1].getMine())
                                 t++;
-                            if (j[num-rows_].getMine())
+                            if (j[num - cols_].getMine())
                                 t++;
-                            if (j[num-1].getMine())
+                            if (j[num - 1].getMine())
                                 t++;
-                            if (j[num-rows_+1].getMine())
+                            if (j[num - cols_ + 1].getMine())
                                 t++;
-                            if (j[num+1].getMine())
+                            if (j[num + 1].getMine())
                                 t++;
-                            if (j[num+rows_].getMine())
+                            if (j[num + cols_].getMine())
                                 t++;
-                            if (j[num+rows_+1].getMine())
+                            if (j[num + cols_ + 1].getMine())
                                 t++;
-                            if (j[num+rows_-1].getMine())
+                            if (j[num + cols_ - 1].getMine())
                                 t++;
                         }
                         j[num].setBackground(new Color(190, 190, 225));
@@ -457,7 +457,7 @@ public class Mine_Sweeper extends JFrame implements Serializable {
     }
     // 메뉴를 만들어주는 함수
     void makeMenu(Mine_Sweeper fram) {
-        String saveDir = "C:\\Users\\gunwb\\Documents\\Projects\\Mine_Sweeper\\src\\savefile.txt";
+        String saveDir = ".\\savefile.txt";
         JMenuBar mb = new JMenuBar();
         JMenu menu1 = new JMenu("게임");
         JMenu menu2 = new JMenu("파일");
@@ -489,24 +489,23 @@ public class Mine_Sweeper extends JFrame implements Serializable {
         });
 
         // 종료하기 버튼 이벤트 리스너
-        iExit.addActionListener(e -> {
-            dispose();
-        });
+        iExit.addActionListener(e -> dispose());
         // 저장 버튼 이벤트 리스너
         iSave.addActionListener(e -> {
-            try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(saveDir)));) {
+            try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(saveDir)))) {
 
                 out.writeObject(fram);
                 System.out.println("파일이 정상적으로 저장되었습니다.");
                 out.close();
             } catch (IOException err) {
+                System.out.print(err.getMessage());
                 System.out.println("저장에 실패하였습니다.");
             }
         });
 
         // 불러오기 버튼 이벤트 리스터
         iLoad.addActionListener(e -> {
-            try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(saveDir)));) {
+            try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(saveDir)))) {
                 Mine_Sweeper original = (Mine_Sweeper)in.readObject();
                 Mine_Sweeper copy = new Mine_Sweeper(original);
                 dispose();
@@ -580,7 +579,6 @@ class LoadFrame extends JFrame {
                 new Mine_Sweeper(20,30);
                 dispose();
             }
-            return;
         });
         easy.setSelected(true);
 
