@@ -337,6 +337,10 @@ public class Mine_Sweeper extends JFrame implements Serializable {
 
                         // 승리 조건
                         if (clickedNum == totalNum - mine) {
+                            for (Button btn : j) {
+                                if (btn.getMine())
+                                    btn.setBackground(new Color(206, 41, 57));
+                            }
                             JOptionPane.showMessageDialog(frame, "좀 하시네요?","축하합니다!",JOptionPane.INFORMATION_MESSAGE);
                             dispose();
                         }
