@@ -3,9 +3,6 @@ package Mine_Sweeper;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-
 import javax.swing.*;
 
 public class Mine_Sweeper extends JFrame implements Serializable {
@@ -20,15 +17,17 @@ public class Mine_Sweeper extends JFrame implements Serializable {
     private int time = 0; // 게임 시간
     private int clickedNum = 0;
     Button[] j;
-    boolean winner;
     JPanel upPanel;
     JPanel downPanel;
     JTextField mineNum;
     JTextField timerField;
+
+    // 생성자
     Mine_Sweeper(int r, int c) {
         setTitle("지뢰찾기");
         setLayout(new BorderLayout());
 
+        // 변수 초기화
         rows_ = r;
         cols_ = c;
         totalNum = r*c;
@@ -40,7 +39,6 @@ public class Mine_Sweeper extends JFrame implements Serializable {
         downPanel = new JPanel();
         downPanel.setLayout(new GridLayout(rows_, cols_)); // 레이아웃을 설정
 
-        ////////////////////////////////////////////////////////
         ////////////// 상단 UI /////////////////////////////////
         mineNum = new JTextField(4);
         timerField = new JTextField(4);
@@ -52,23 +50,159 @@ public class Mine_Sweeper extends JFrame implements Serializable {
         upPanel.add(mineNum);
         upPanel.add(new JLabel("시간"));
         upPanel.add(timerField);
+        upPanel.setBackground(new Color(240, 240, 240));
+        downPanel.setBackground(new Color(240, 240, 240));
 
-        /////////////////////////////////////////////////////////
-        ////////////// 버튼 구현 ////////////////////////////////
-        j = new Button[totalNum];
+        j = new Button[totalNum]; // 버튼 설정
+        makeButton(1);
+        makeTimer(); // 타이머 설정
+
+        add("North",upPanel);    // 레이아웃 설정
+        add("Center",downPanel);
+        makeMenu();
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(cols_ * 45, rows_ * 50);
+        setVisible(true);
+    }
+    // 복사 생성자
+    Mine_Sweeper(Mine_Sweeper ms) {
+        rows_ = ms.rows_;
+        cols_ = ms.cols_;
+        totalNum = ms.totalNum;
+        generNum = ms.generNum;
+        numList = ms.numList;
+        mine = ms.mine;
+        leftFlag = ms.leftFlag;
+        time = ms.time;
+        clickedNum = ms.clickedNum;
+        j = ms.j;
+        upPanel = ms.upPanel;
+        downPanel = ms.downPanel;
+        mineNum = ms.mineNum;
+        timerField = ms.timerField;
+        setTitle("지뢰찾기");
+        setLayout(new BorderLayout());
+
+        makeButton(2);
+        makeTimer();
+
+        add("North",upPanel);
+        add("Center",downPanel);
+        makeMenu();
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(cols_ * 45, rows_* 50);
+        setVisible(true);
+    }
+
+    // 메뉴를 만들어주는 함수
+    void makeMenu() {
+        String saveDir = ".\\savefile.txt";
+        JMenuBar mb = new JMenuBar();
+        JMenu menu1 = new JMenu("게임");
+        JMenu menu2 = new JMenu("파일");
+        JMenu menu3 = new JMenu("도움말");
+
+        mb.add(menu1);
+        mb.add(menu2);
+        mb.add(menu3);
+
+        JMenuItem iStart = new JMenuItem("시작하기");
+        JMenuItem iLevel = new JMenuItem("레벨 선택");
+        JMenuItem iExit = new JMenuItem("종료하기");
+
+        JMenuItem iSave = new JMenuItem("저장");
+        JMenuItem iLoad = new JMenuItem("불러오기");
+
+        JMenuItem iHelp = new JMenuItem("도움말");
+
+        // 시작하기 버튼 이벤트 리스너
+        iStart.addActionListener(e -> {
+            new Mine_Sweeper(rows_,cols_);
+            dispose();
+        });
+
+        // 레벨 선택 버튼 이벤트 리스너
+        iLevel.addActionListener(e -> {
+            new LevelFrame();
+            dispose();
+        });
+
+        // 종료하기 버튼 이벤트 리스너
+        iExit.addActionListener(e -> dispose());
+        // 저장 버튼 이벤트 리스너
+        iSave.addActionListener(e -> {
+            try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(saveDir)))) {
+                out.writeObject(this);
+                JOptionPane.showMessageDialog(this, "정상적으로 저장되었습니다.",
+                        "저장 완료!", JOptionPane.INFORMATION_MESSAGE);
+                out.close();
+            } catch (IOException err) {
+                System.out.println("에러 메시지 : " + err.getMessage());
+                JOptionPane.showMessageDialog(this, "저장에 실패하였습니다.",
+                        "저장 실패!", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // 불러오기 버튼 이벤트 리스터
+        iLoad.addActionListener(e -> {
+            try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(saveDir)))) {
+                Mine_Sweeper copy = new Mine_Sweeper((Mine_Sweeper)in.readObject());
+                dispose();
+                JOptionPane.showMessageDialog(copy, "정상적으로 로드 되었습니다.",
+                        "로드 완료!", JOptionPane.INFORMATION_MESSAGE);
+                in.close();
+            } catch (Exception err) {
+                System.out.println("에러 메시지 : " + err.getMessage());
+                JOptionPane.showMessageDialog(this, "로드에 실패하였습니다.",
+                        "로드 실패!", JOptionPane.ERROR_MESSAGE);
+            }
+
+        });
+
+        // 도움말 버튼 이벤트 리스너
+        iHelp.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "지뢰를 안밟으면 됩니다.",
+                    "간단해요.", JOptionPane.INFORMATION_MESSAGE);
+        });
+        menu1.add(iStart);
+        menu1.add(iLevel);
+        menu1.add(iExit);
+        menu2.add(iSave);
+        menu2.add(iLoad);
+        menu3.add(iHelp);
+
+        setJMenuBar(mb);
+    }
+    // 숫자를 중복없이 랜덤으로 생성해주는 함수
+    int ranNumGenerator() {
+        int number;
+
+        do {
+            number = (int) ((Math.random()) * totalNum + 1);
+        }
+        while (generNum[number] != 0);
+
+        generNum[number]++;
+
+        return number;
+    }
+    // 버튼에 기능 추가해주는 함수
+    void makeButton(int n) {
+        Mine_Sweeper frame = this;
         for (int i = 0; i < totalNum; i++) {  // 랜덤으로 생성한 숫자로 버튼을 생성
             final int num = i;
-            int t = 0;
-            numList[i] = ranNumGenerator();
+            if (n == 1) { // 새로하는 게임일 때
+                numList[i] = ranNumGenerator();
 
-            j[i] = new Button();
-            if (numList[i] % 10 == 0) {     // 랜덤으로 마인 설정
-                j[i].setMine(true);
+                j[i] = new Button();
+                if (numList[i] % 10 == 0) {     // 랜덤으로 마인 설정
+                    j[i].setMine(true);
+                }
+                j[i].setBackground(new Color(110, 153, 204));
+
+                j[i].setSize(20, 20);
+                downPanel.add(j[i]);
             }
-            j[i].setBackground(new Color(192, 192, 192));
-
-            j[i].setSize(20, 20);
-            downPanel.add(j[i]);
 
             j[i].addMouseListener(new MouseListener() {
                 @Override
@@ -84,13 +218,11 @@ public class Mine_Sweeper extends JFrame implements Serializable {
                         int t = 0;
                         // 클릭한 버튼이 지뢰면 게임 종료
                         if (j[num].getMine()) {
-                            winner = false;
-
                             for (Button btn : j) {
                                 if (btn.getMine())
-                                    btn.setBackground(new Color(255, 0, 0));
+                                    btn.setBackground(new Color(206, 41, 57));
                             }
-                            JOptionPane.showMessageDialog(null, "You Lose!");
+                            JOptionPane.showMessageDialog(frame, "패배 하였습니다~","이거밖에 안되시나요?",JOptionPane.QUESTION_MESSAGE);
                             dispose();
                             return;
                         }
@@ -205,7 +337,7 @@ public class Mine_Sweeper extends JFrame implements Serializable {
 
                         // 승리 조건
                         if (clickedNum == totalNum - mine) {
-                            JOptionPane.showMessageDialog(null, "You Win!");
+                            JOptionPane.showMessageDialog(frame, "좀 하시네요?","축하합니다!",JOptionPane.INFORMATION_MESSAGE);
                             dispose();
                         }
                     }
@@ -214,14 +346,14 @@ public class Mine_Sweeper extends JFrame implements Serializable {
                     //////// 오른쪽 마우스 클릭 시 //////////////
                     /////////////////////////////////////////////
                     if (SwingUtilities.isRightMouseButton(e) && j[num].getFlag()) { // 만약 이미 깃발이 세워져 있다면
-                        j[num].setBackground(new Color(192, 192, 192));
+                        j[num].setBackground(new Color(110, 153, 204));
                         j[num].setFlag(false);
                         leftFlag++;
                         mineNum.setText("" + leftFlag);
                         return;
                     }
                     if (SwingUtilities.isRightMouseButton(e) && !j[num].getClicked()) {
-                        j[num].setBackground(new Color(0, 0, 255));
+                        j[num].setBackground(new Color(1, 32, 201));
                         j[num].setFlag(true);
                         leftFlag--;
                         mineNum.setText("" + leftFlag);
@@ -241,307 +373,14 @@ public class Mine_Sweeper extends JFrame implements Serializable {
                 }
             });
         }
-        // 타이머 설정
+    }
+    // 타이머 함수
+    void makeTimer() {
         Timer timer = new Timer(1000, e -> {
             time++;
             timerField.setText(" "+time+" ");
         });
         timer.start();
-
-        add("North",upPanel);
-        add("Center",downPanel);
-        makeMenu(this);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(cols_ * 45, rows_ * 50);
-        setVisible(true);
-    }
-    // 복사 생성자
-    Mine_Sweeper(Mine_Sweeper ms) {
-        rows_ = ms.rows_;
-        cols_ = ms.cols_;
-        totalNum = ms.totalNum;
-        generNum = ms.generNum;
-        numList = ms.numList;
-        mine = ms.mine;
-        leftFlag = ms.leftFlag;
-        time = ms.time;
-        clickedNum = ms.clickedNum;
-        j = ms.j;
-        winner = ms.winner;
-        upPanel = ms.upPanel;
-        downPanel = ms.downPanel;
-        mineNum = ms.mineNum;
-        timerField = ms.timerField;
-        System.out.println(rows_ + "  "+cols_);
-        setTitle("지뢰찾기");
-        setLayout(new BorderLayout());
-
-        for (int i = 0; i < totalNum; i++) {
-            final int num = i;
-            int t = 0;
-            j[i].addMouseListener(new MouseListener() {
-                @Override
-                public void mouseClicked(MouseEvent e) {}
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    /////////////////////////////////////////////
-                    //////// 왼쪽 마우스 클릭 시 ////////////////
-                    /////////////////////////////////////////////
-                    if (SwingUtilities.isLeftMouseButton(e)) {
-                        int t = 0;
-                        // 클릭한 버튼이 지뢰면 게임 종료
-                        if (j[num].getMine()) {
-                            winner = false;
-
-                            for (Button btn : j) {
-                                if (btn.getMine())
-                                    btn.setBackground(new Color(255,0,0));
-                            }
-                            JOptionPane.showMessageDialog(null, "You Lose!");
-                            dispose();
-                            return;
-                        }
-                        // 클릭한 버튼이 꼭짓점일 때
-                        if (num == 0) {
-                            if (j[num + 1].getMine())
-                                t++;
-                            if (j[num + cols_].getMine())
-                                t++;
-                            if (j[num + cols_ + 1].getMine())
-                                t++;
-                        }
-                        if (num == cols_ - 1) {
-                            if (j[num - 1].getMine())
-                                t++;
-                            if (j[num + cols_ - 1].getMine())
-                                t++;
-                            if (j[num + cols_].getMine())
-                                t++;
-                        }
-                        if (num == totalNum - cols_) {
-                            if (j[num - cols_].getMine())
-                                t++;
-                            if (j[num - cols_ + 1].getMine())
-                                t++;
-                            if (j[num + 1].getMine())
-                                t++;
-                        }
-                        if (num == totalNum - 1) {
-                            if (j[num - cols_ - 1].getMine())
-                                t++;
-                            if (j[num - cols_].getMine())
-                                t++;
-                            if (j[num - 1].getMine())
-                                t++;
-                        }
-                        if (num > 0 && num < cols_ - 1) { // 클릭한 버튼이 위쪽 모서리 일 때
-                            if (j[num + 1].getMine())
-                                t++;
-                            if (j[num + cols_].getMine())
-                                t++;
-                            if (j[num + cols_ + 1].getMine())
-                                t++;
-                            if (j[num - 1].getMine())
-                                t++;
-                            if (j[num + cols_ - 1].getMine())
-                                t++;
-                        }
-                        if (num >= cols_ && num < totalNum - cols_) { // 클릭한 버튼이 양 쪽 모서리일 때
-                            if (num % cols_ == 0) {
-                                if (j[num - cols_].getMine())
-                                    t++;
-                                if (j[num - cols_ + 1].getMine())
-                                    t++;
-                                if (j[num + 1].getMine())
-                                    t++;
-                                if (j[num + cols_].getMine())
-                                    t++;
-                                if (j[num + cols_ + 1].getMine())
-                                    t++;
-                            }
-                            if (num % cols_ == cols_ - 1) {
-                                if (j[num - cols_ - 1].getMine())
-                                    t++;
-                                if (j[num - cols_].getMine())
-                                    t++;
-                                if (j[num - 1].getMine())
-                                    t++;
-                                if (j[num + cols_ - 1].getMine())
-                                    t++;
-                                if (j[num + cols_].getMine())
-                                    t++;
-                            }
-                        }
-                        if (num > totalNum - cols_ && num < totalNum - 1) { // 아래쪽 모서리 일때
-                            if (j[num - cols_ - 1].getMine())
-                                t++;
-                            if (j[num - cols_].getMine())
-                                t++;
-                            if (j[num - 1].getMine())
-                                t++;
-                            if (j[num - cols_ + 1].getMine())
-                                t++;
-                            if (j[num + 1].getMine())
-                                t++;
-                        }
-                        if (num > cols_ && num < totalNum - cols_ - 1 &&
-                                !(num % cols_ == 0 || num % cols_ == cols_ - 1)) {
-                            if (j[num - cols_ - 1].getMine())
-                                t++;
-                            if (j[num - cols_].getMine())
-                                t++;
-                            if (j[num - 1].getMine())
-                                t++;
-                            if (j[num - cols_ + 1].getMine())
-                                t++;
-                            if (j[num + 1].getMine())
-                                t++;
-                            if (j[num + cols_].getMine())
-                                t++;
-                            if (j[num + cols_ + 1].getMine())
-                                t++;
-                            if (j[num + cols_ - 1].getMine())
-                                t++;
-                        }
-                        j[num].setBackground(new Color(190, 190, 225));
-                        if (!j[num].getClicked())
-                            clickedNum++;
-                        j[num].setClicked(true);
-                        if (t != 0)
-                            j[num].setText(""+t);
-
-                        // 승리 조건
-                        if (clickedNum == totalNum - mine) {
-                            JOptionPane.showMessageDialog(null, "You Win!");
-                            dispose();
-                        }
-                    }
-
-                    /////////////////////////////////////////////
-                    //////// 오른쪽 마우스 클릭 시 //////////////
-                    /////////////////////////////////////////////
-                    if (SwingUtilities.isRightMouseButton(e) && j[num].getFlag()) { // 만약 이미 깃발이 세워져 있다면
-                        j[num].setBackground(new Color(192,192,192));
-                        j[num].setFlag(false);
-                        leftFlag++;
-                        mineNum.setText(""+leftFlag);
-                        return;
-                    }
-                    if (SwingUtilities.isRightMouseButton(e) && !j[num].getClicked()) {
-                        j[num].setBackground(new Color(0, 0, 255));
-                        j[num].setFlag(true);
-                        leftFlag--;
-                        mineNum.setText(""+leftFlag);
-                    }
-                }
-                @Override
-                public void mouseReleased(MouseEvent e) {}
-                @Override
-                public void mouseEntered(MouseEvent e) {}
-                @Override
-                public void mouseExited(MouseEvent e) {}
-            });
-        }
-        Timer timer = new Timer(1000, e -> {
-            time++;
-            timerField.setText(" "+time+" ");
-        });
-        timer.start();
-
-        add("North",upPanel);
-        add("Center",downPanel);
-        makeMenu(this);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(cols_ * 45, rows_* 50);
-        setVisible(true);
-    }
-    // 메뉴를 만들어주는 함수
-    void makeMenu(Mine_Sweeper fram) {
-        String saveDir = ".\\savefile.txt";
-        JMenuBar mb = new JMenuBar();
-        JMenu menu1 = new JMenu("게임");
-        JMenu menu2 = new JMenu("파일");
-        JMenu menu3 = new JMenu("도움말");
-
-        mb.add(menu1);
-        mb.add(menu2);
-        mb.add(menu3);
-
-        JMenuItem iStart = new JMenuItem("시작하기");
-        JMenuItem iLevel = new JMenuItem("레벨 선택");
-        JMenuItem iExit = new JMenuItem("종료하기");
-
-        JMenuItem iSave = new JMenuItem("저장");
-        JMenuItem iLoad = new JMenuItem("불러오기");
-
-        JMenuItem iHelp = new JMenuItem("도움말");
-
-        // 시작하기 버튼 이벤트 리스너
-        iStart.addActionListener(e -> {
-            new Mine_Sweeper(rows_,cols_);
-            dispose();
-        });
-
-        // 레벨 선택 버튼 이벤트 리스너
-        iLevel.addActionListener(e -> {
-            new LoadFrame();
-            dispose();
-        });
-
-        // 종료하기 버튼 이벤트 리스너
-        iExit.addActionListener(e -> dispose());
-        // 저장 버튼 이벤트 리스너
-        iSave.addActionListener(e -> {
-            try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(saveDir)))) {
-
-                out.writeObject(fram);
-                System.out.println("파일이 정상적으로 저장되었습니다.");
-                out.close();
-            } catch (IOException err) {
-                System.out.print(err.getMessage());
-                System.out.println("저장에 실패하였습니다.");
-            }
-        });
-
-        // 불러오기 버튼 이벤트 리스터
-        iLoad.addActionListener(e -> {
-            try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(saveDir)))) {
-                Mine_Sweeper original = (Mine_Sweeper)in.readObject();
-                Mine_Sweeper copy = new Mine_Sweeper(original);
-                dispose();
-                System.out.println("정상적으로 로드되었습니다.");
-                in.close();
-            } catch (Exception err) {
-                System.out.println("로드에 실패하였습니다.");
-            }
-
-        });
-
-        // 도움말 버튼 이벤트 리스너
-        iHelp.addActionListener(e -> {
-
-        });
-        menu1.add(iStart);
-        menu1.add(iLevel);
-        menu1.add(iExit);
-        menu2.add(iSave);
-        menu2.add(iLoad);
-        menu3.add(iHelp);
-
-        setJMenuBar(mb);
-    }
-    // 숫자를 중복없이 랜덤으로 생성해주는 함수
-    int ranNumGenerator() {
-        int number;
-
-        do {
-            number = (int) ((Math.random()) * totalNum + 1);
-        }
-        while (generNum[number] != 0);
-
-        generNum[number]++;
-
-        return number;
     }
 
     public static void main(String[] args) throws IOException {
@@ -549,9 +388,30 @@ public class Mine_Sweeper extends JFrame implements Serializable {
     }
 }
 
-class LoadFrame extends JFrame {
+// 버튼 구현
+class Button extends JButton implements Serializable{
+    private boolean isClicked;
+    private boolean isMine;
+    private boolean isFlag;
+    Button() {
+        super();
+    }
+
+    void setClicked(boolean bool) {
+        isClicked = bool;
+        isFlag = false;
+    }
+    void setFlag(boolean bool) { isFlag = bool; }
+    void setMine(boolean bool) { isMine = bool; }
+
+    boolean getMine() { return isMine; }
+    boolean getClicked() { return isClicked; }
+    boolean getFlag() { return isFlag; }
+}
+// 레벨 선택 프레임
+class LevelFrame extends JFrame {
     private static final long serialVersionUID = 1L;
-    LoadFrame() {
+    LevelFrame() {
         setTitle("레벨 선택");
 
         JPanel pan = new JPanel(new GridLayout(5,0));
@@ -597,47 +457,3 @@ class LoadFrame extends JFrame {
         setVisible(true);
     }
 }
-class Button extends JButton implements Serializable{
-    private boolean isClicked;
-    private boolean isMine;
-    private boolean isFlag;
-    Button(String str) {
-        super(str);
-        isClicked = false;
-        isMine = false;
-        isFlag = false;
-    }
-    Button() {
-        super();
-    }
-    void loadFile(Button btn) {
-        isClicked = btn.isClicked;
-        isMine = btn.isMine;
-        isFlag = btn.isFlag;
-        this.setBackground(btn.getBackground());
-        this.setText(btn.getText());
-    }
-
-    void initial() {
-        this.setBackground(new Color(192,192,192));
-        isClicked = false;
-        isMine = false;
-        isFlag = false;
-    }
-    void setClicked(boolean bool) {
-        isClicked = bool;
-        isFlag = false;
-    }
-    void setFlag(boolean bool) { isFlag = bool; }
-    void setMine(boolean bool) { isMine = bool; }
-
-    boolean getMine() { return isMine; }
-    boolean getClicked() { return isClicked; }
-    boolean getFlag() { return isFlag; }
-}
-
-
-
-
-
-///
